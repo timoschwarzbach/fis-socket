@@ -28,17 +28,11 @@ func CreateController() *Controller {
 }
 
 func (c *Controller) demoSequence() []Sequence {
-	img := c.Image()
 	return []Sequence{
 		c.Generic("stations"),
-		c.Generic("map", 2),
-		c.BocholtBorkenerVolksblatt(),
-		// c.MapView("test1"),
-		c.MapView("testbustreff"),
-		c.MapView("testbahnhof"),
-		img,
-		img,
-		c.Tagesschau(),
+		c.Generic("map", 15),
+		c.MapView("bremenhbf"),
+		c.Image(),
 		c.Video(),
 	}
 

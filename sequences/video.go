@@ -17,7 +17,7 @@ type VideoSequence struct {
 func (c *Controller) Video() *VideoSequence {
 	return &VideoSequence{
 		controller: c,
-		videoPool:  []string{"NRW_Website 16zu9_1920x1080.mp4", "youtube_yqhhyUW5WAc_1920x1080_h264.mp4"},
+		videoPool:  []string{"vimeo_558475288_1920x1080_mute.mp4"},
 		current:    0,
 	}
 }
