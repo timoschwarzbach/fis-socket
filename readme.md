@@ -3,7 +3,7 @@ It should run once per vehicle and controls the content displayed on the display
 
 dependencies:
 
--   ffmpeg
+-   ffmpeg (to get the duration of videos displayed)
 
 run:
 go run .
