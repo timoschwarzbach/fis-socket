@@ -1,13 +1,15 @@
 package main
 
 import (
+	"fis/socket/ibis"
 	"fis/socket/sequences"
+	"fis/socket/socket"
 	"fmt"
 	"net/http"
 )
 
 func main() {
-	fmt.Println("Hello, World!")
+	fmt.Println("socket process started")
 
 	go func() {
 		fmt.Println("Starting file server")
@@ -17,7 +19,19 @@ func main() {
 			http.FileServer(http.Dir("static")).ServeHTTP(w, r)
 		}))
 	}()
-	sequences.CreateController()
 
-	fmt.Println("Bye, World!")
+	// start socket server
+	server := socket.StartSocket()
+
+	// create ibis controller
+	go func() {
+		fmt.Println("creating ibis controller")
+		ibis.CreateController(server)
+	}()
+
+	// create media controller
+	fmt.Println("creating media controller")
+	sequences.CreateController(server)
+
+	fmt.Println("socket process ended")
 }

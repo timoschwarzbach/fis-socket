@@ -14,10 +14,10 @@ type Controller struct {
 	index        int
 }
 
-func CreateController() *Controller {
+func CreateController(server *socket.Server) *Controller {
 	c := &Controller{
 		index:        0,
-		socketServer: socket.StartSocket(),
+		socketServer: server,
 	}
 
 	c.sequence = c.demoSequence()
