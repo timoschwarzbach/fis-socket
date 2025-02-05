@@ -1,6 +1,9 @@
 # Start from the official Go image
 FROM golang:1.23-alpine
 
+# Install ffprobe
+RUN apk add --no-cache ffmpeg
+
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
