@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 /*
@@ -39,7 +40,11 @@ func (c *IbisController) send(data any) {
 }
 
 func (c *IbisController) fullPullPush() {
-	url := "http://localhost:2092/CustomerInformationService"
+	url, exists := os.LookupEnv("CIS_URL")
+	if !exists {
+		fmt.Println("CustomerInformationService endpoint not specified")
+		return
+	}
 
 	resp, err := http.Get(url)
 	if err != nil {
