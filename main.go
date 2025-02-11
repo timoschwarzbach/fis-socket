@@ -4,6 +4,7 @@ import (
 	"fis/socket/ibis"
 	"fis/socket/sequences"
 	"fis/socket/socket"
+	fissync "fis/socket/sync"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,6 +21,8 @@ func init() {
 
 func main() {
 	fmt.Println("socket process started")
+
+	fissync.Testsynclambda()
 
 	go func() {
 		fmt.Println("Starting file server")
