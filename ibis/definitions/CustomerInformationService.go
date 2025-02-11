@@ -43,6 +43,7 @@ type StopPoint struct {
 	StopRef         Value            `xml:"StopRef"`
 	StopName        Value            `xml:"StopName"`
 	DisplayContents []DisplayContent `xml:"DisplayContent"`
+	Connections     []Connection     `xml:"Connection"`
 }
 
 type DisplayContent struct {
@@ -60,7 +61,14 @@ type LineInformation struct {
 
 type Destination struct {
 	DestinationRef  Value `xml:"DestinationRef"`
-	DestinationName Value `xml:"DestinationName"`
+	DestinationName Value `xml:"DestinationName,omitempty"`
+}
+
+type Connection struct {
+	StopRef        Value          `xml:"StopRef"`
+	ConnectionRef  Value          `xml:"ConnectionRef"`
+	ConnectionType string         `xml:"ConnectionType"`
+	DisplayContent DisplayContent `xml:"DisplayContent"`
 }
 
 type Value struct {
