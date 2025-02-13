@@ -6,21 +6,43 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 )
 
-func Testsynclambda() {
+type SyncController struct {
+	MinioClient *minio.Client
+	interval    int
+}
+
+func CreateSynchronizer() *SyncController {
 	client, success := CreateMinioClient()
 	if !success {
 		log.Fatal("Failed to create Minio client")
 	}
 
-	// sync database
-	syncDatabase()
+	return &SyncController{
+		MinioClient: client,
+		interval:    60,
+	}
+}
 
-	// sync bucket "fis"
-	syncStaticFiles(client)
+func (s *SyncController) StartIntervalBackgroundSync() {
+	go func() {
+		ticker := time.NewTicker(time.Duration(s.interval) * time.Second)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			fmt.Println("Syncing to upstream...")
+			s.Sync()
+		}
+	}()
+}
+
+func (s *SyncController) Sync() {
+	syncDatabase()
+	syncStaticFiles(s.MinioClient)
 }
 
 func syncDatabase() {

@@ -22,8 +22,6 @@ func init() {
 func main() {
 	fmt.Println("socket process started")
 
-	fissync.Testsynclambda()
-
 	go func() {
 		fmt.Println("Starting file server")
 		// http.ListenAndServe(":8080", http.FileServer(http.Dir("static")))
@@ -32,6 +30,10 @@ func main() {
 			http.FileServer(http.Dir("static")).ServeHTTP(w, r)
 		}))
 	}()
+
+	// start sync service
+	sync := fissync.CreateSynchronizer()
+	sync.StartIntervalBackgroundSync()
 
 	// start socket server
 	server := socket.StartSocket()
