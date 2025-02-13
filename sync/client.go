@@ -1,7 +1,6 @@
 package fissync
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -12,25 +11,25 @@ import (
 func CreateMinioClient() (*minio.Client, bool) {
 	endpoint, exists := os.LookupEnv("MINIO_ENDPOINT")
 	if !exists {
-		fmt.Println("minio endpoint not specified")
+		log.Fatalln("minio endpoint not specified")
 		return nil, false
 	}
 
 	accessKeyID, exists := os.LookupEnv("MINIO_ACCESS_KEY")
 	if !exists {
-		fmt.Println("minio access key not specified")
+		log.Fatalln("minio access key not specified")
 		return nil, false
 	}
 
 	secretAccessKey, exists := os.LookupEnv("MINIO_SECRET_KEY")
 	if !exists {
-		fmt.Println("minio secret key not specified")
+		log.Fatalln("minio secret key not specified")
 		return nil, false
 	}
 
 	useSSLString, exists := os.LookupEnv("MINIO_SSL")
 	if !exists {
-		fmt.Println("minio secret key not specified")
+		log.Fatalln("minio secret key not specified")
 		return nil, false
 	}
 	useSSL := useSSLString == "true"
@@ -44,6 +43,6 @@ func CreateMinioClient() (*minio.Client, bool) {
 		log.Fatalln(err)
 	}
 
-	log.Printf("%#v\n", minioClient) // minioClient is now set up
+	log.Println("minioClient initialized successfully")
 	return minioClient, true
 }

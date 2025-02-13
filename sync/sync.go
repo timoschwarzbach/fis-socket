@@ -15,8 +15,26 @@ func Testsynclambda() {
 	if !success {
 		log.Fatal("Failed to create Minio client")
 	}
+
+	// sync database
+	syncDatabase()
+
 	// sync bucket "fis"
 	syncStaticFiles(client)
+}
+
+func syncDatabase() {
+	endpoint, exists := os.LookupEnv("MANAGE_ENDPOINT")
+	if !exists {
+		log.Fatalln("manage endpoint not specified")
+	}
+
+	fmt.Println("Downloading database.sqlite")
+	fmt.Printf("%s\n", endpoint+"/api/sequences")
+	err := DownloadFile("database.sqlite", endpoint+"/api/sequences")
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func syncStaticFiles(client *minio.Client) {
