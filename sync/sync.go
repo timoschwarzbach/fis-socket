@@ -33,6 +33,7 @@ func (s *SyncController) StartIntervalBackgroundSync() {
 		ticker := time.NewTicker(time.Duration(s.interval) * time.Second)
 		defer ticker.Stop()
 
+		s.Sync()
 		for range ticker.C {
 			fmt.Println("Syncing to upstream...")
 			s.Sync()
@@ -55,7 +56,8 @@ func syncDatabase() {
 	fmt.Printf("%s\n", endpoint+"/api/sequences")
 	err := DownloadFile("database.sqlite", endpoint+"/api/sequences")
 	if err != nil {
-		log.Fatalln(err)
+		log.Panic("Failed to download database")
+		log.Panic(err)
 	}
 }
 
