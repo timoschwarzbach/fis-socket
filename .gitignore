@@ -1,3 +1,4 @@
 .env
 /static
 /static-test
+/static-old

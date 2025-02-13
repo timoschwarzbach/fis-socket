@@ -14,13 +14,9 @@ func (c *Controller) Image() *ImageSequence {
 	return &ImageSequence{
 		controller: c,
 		imagePool: []string{
-			"image1.jpg",
-			"image2.jpg",
-			"image3.jpg",
-			"20231004_115158617_iOS.jpg",
-			"202308xx_Gleisanschluss-Neues-Werk-Cottbus.jpg",
-			"f8b8fb494f0b00379e402c5162fb00d9.jpeg",
-			"Kampagnenmotiv_Nur-fuer-alle_S-Bahn-Berlin_Gemeinsam-data.jpg",
+			"-dHzZNgOE6hM",
+			"0n42u6WjpvUl",
+			"I_Ihb73Tedo9",
 		},
 		current: 0,
 	}
