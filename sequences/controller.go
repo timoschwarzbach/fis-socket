@@ -9,15 +9,17 @@ type Sequence interface {
 }
 
 type Controller struct {
-	socketServer *socket.Server
-	sequence     []Sequence
-	index        int
+	socketServer    *socket.Server
+	sequenceService *SequenceService
+	sequence        []Sequence
+	index           int
 }
 
 func CreateController(server *socket.Server) *Controller {
 	c := &Controller{
-		index:        0,
-		socketServer: server,
+		index:           0,
+		socketServer:    server,
+		sequenceService: CreateSequenceService(),
 	}
 
 	c.sequence = c.demoSequence()
@@ -28,7 +30,8 @@ func CreateController(server *socket.Server) *Controller {
 }
 
 func (c *Controller) demoSequence() []Sequence {
-	img := c.Image()
+	// img := c.Image()
+	img := c.Sequence(c.sequenceService)
 	return []Sequence{
 		c.Generic("stations"),
 		// c.Generic("map", 2),

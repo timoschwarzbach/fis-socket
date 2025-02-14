@@ -4,7 +4,6 @@ import (
 	"fis/socket/ibis"
 	"fis/socket/sequences"
 	"fis/socket/socket"
-	fissync "fis/socket/sync"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,8 +31,8 @@ func main() {
 	}()
 
 	// start sync service
-	sync := fissync.CreateSynchronizer()
-	sync.StartIntervalBackgroundSync()
+	// sync := fissync.CreateSynchronizer()
+	// sync.StartIntervalBackgroundSync()
 
 	// start socket server
 	server := socket.StartSocket()

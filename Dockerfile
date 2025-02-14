@@ -1,8 +1,8 @@
 # Start from the official Go image
 FROM golang:1.23-alpine
 
-# Install ffprobe
-RUN apk add --no-cache ffmpeg
+# Install ffprobe - Install gcc and g++ for CGO
+RUN apk add --no-cache ffmpeg gcc g++
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -16,8 +16,8 @@ RUN go mod download
 # Copy the source from the current directory to the working directory inside the container
 COPY . .
 
-# Build the Go app
-RUN go build -o main .
+# Set CGO_ENABLED=1 and build the Go app
+RUN CGO_ENABLED=1 go build -o main .
 
 # file server
 EXPOSE 8080
