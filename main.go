@@ -34,11 +34,12 @@ func main() {
 	// start socket server
 	server := socket.StartSocket()
 
+	// channel for database sync messages
+	dbSync := make(chan bool, 1)
+
 	// start sync service
-	go func() {
-		sync := fissync.CreateSynchronizer()
-		sync.StartIntervalBackgroundSync()
-	}()
+	sync := fissync.CreateSynchronizer(dbSync)
+	sync.StartIntervalBackgroundSync()
 
 	// create ibis controller
 	go func() {
@@ -48,7 +49,7 @@ func main() {
 
 	// create media controller
 	fmt.Println("SequenceController:\tcreating media controller")
-	sequences.CreateController(server)
+	sequences.CreateController(server, dbSync)
 
 	fmt.Println("socket process ended")
 }

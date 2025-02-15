@@ -9,17 +9,20 @@ import (
 
 type SequenceService struct {
 	db      *gorm.DB
+	dbSync  chan bool
 	current *Sequences
 	next    *Sequences
 }
 
-func CreateSequenceService() *SequenceService {
+func CreateSequenceService(dbSync chan bool) *SequenceService {
 	db := connectToSQLite()
 	c := &SequenceService{
 		db:      db,
+		dbSync:  dbSync,
 		current: getFallbackSequence(),
 		next:    getFallbackSequence(),
 	}
+	c.ListenToUpdates()
 	c.Step()
 	return c
 }
@@ -31,6 +34,17 @@ func connectToSQLite() *gorm.DB {
 	}
 
 	return db
+}
+
+func (c *SequenceService) forceReconnect() {
+	// sqlDB, err := c.db.DB()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// err = sqlDB.Close()
+	// sqlCon, err := sqlDB.Conn(context.Background())
+	log.Println("SequenceService:\tReconnecting to SQLite")
+	c.db = connectToSQLite()
 }
 
 type Sequences struct {
@@ -83,4 +97,15 @@ func (c *SequenceService) getLocalFileReferenceFromId(id string) string {
 func (c *SequenceService) Step() {
 	c.current = c.next
 	c.next = c.getNextSequence()
+}
+
+func (c *SequenceService) ListenToUpdates() {
+	log.Println("SequenceService:\tListening to SQLite update requests")
+	go func() {
+		for {
+			<-c.dbSync
+			log.Println("SequenceService:\tDatabase reconnect update request received")
+			c.forceReconnect()
+		}
+	}()
 }

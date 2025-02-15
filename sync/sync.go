@@ -13,9 +13,10 @@ import (
 type SyncController struct {
 	MinioClient *minio.Client
 	interval    int
+	dbSync      chan bool
 }
 
-func CreateSynchronizer() *SyncController {
+func CreateSynchronizer(dbSync chan bool) *SyncController {
 	client, success := CreateMinioClient()
 	if !success {
 		log.Fatalln("SyncService:\tFailed to create Minio client")
@@ -23,7 +24,8 @@ func CreateSynchronizer() *SyncController {
 	log.Println("SyncService:\tCreating SyncService")
 	return &SyncController{
 		MinioClient: client,
-		interval:    60,
+		interval:    6,
+		dbSync:      dbSync,
 	}
 }
 
@@ -46,19 +48,27 @@ func (s *SyncController) Sync() {
 	s.syncStaticFiles()
 }
 
-func (s *SyncController) syncDatabase() {
+func (s *SyncController) syncDatabase() bool {
 	endpoint, exists := os.LookupEnv("MANAGE_ENDPOINT")
 	if !exists {
 		log.Fatalln("SyncService:\tfis-manage endpoint not specified")
 	}
 
-	log.Println("SyncService:\tDownloading database.sqlite")
-
+	log.Println("SyncService:\tDownloading database")
 	err := DownloadFile("database.sqlite", endpoint)
 	if err != nil {
-		log.Panicln("SyncService:\tFailed to download database")
-		log.Panicln(err)
+		log.Println("SyncService:\tFailed to download database")
+		log.Println(err)
+		return false
 	}
+
+	// notify the database service to reload the database
+	log.Println("SyncService:\tTelling database service to reload the database")
+	go func() {
+		s.dbSync <- true
+	}()
+
+	return true
 }
 
 func (s *SyncController) syncStaticFiles() {
@@ -109,7 +119,7 @@ func (s *SyncController) syncStaticFiles() {
 
 			log.Printf("SyncService:\tResource:\tSuccessfully synced %s\n", object.Key)
 		} else {
-			log.Printf("SyncService:\tResource:\tAlready up-to-date: %s\n", object.Key)
+			// log.Printf("SyncService:\tResource:\tAlready up-to-date: %s\n", object.Key)
 		}
 
 		// Add the object to the map

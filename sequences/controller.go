@@ -15,11 +15,11 @@ type Controller struct {
 	index           int
 }
 
-func CreateController(server *socket.Server) *Controller {
+func CreateController(server *socket.Server, dbSync chan bool) *Controller {
 	c := &Controller{
 		index:           0,
 		socketServer:    server,
-		sequenceService: CreateSequenceService(),
+		sequenceService: CreateSequenceService(dbSync),
 	}
 
 	c.sequence = c.demoSequence()
