@@ -2,7 +2,6 @@ package fissync
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -19,9 +18,9 @@ type SyncController struct {
 func CreateSynchronizer() *SyncController {
 	client, success := CreateMinioClient()
 	if !success {
-		log.Fatal("Failed to create Minio client")
+		log.Fatalln("SyncService:\tFailed to create Minio client")
 	}
-
+	log.Println("SyncService:\tCreating SyncService")
 	return &SyncController{
 		MinioClient: client,
 		interval:    60,
@@ -29,48 +28,49 @@ func CreateSynchronizer() *SyncController {
 }
 
 func (s *SyncController) StartIntervalBackgroundSync() {
+	log.Println("SyncService:\tStarting SyncService")
 	go func() {
 		ticker := time.NewTicker(time.Duration(s.interval) * time.Second)
 		defer ticker.Stop()
 
 		s.Sync()
 		for range ticker.C {
-			fmt.Println("Syncing to upstream...")
+			log.Println("SyncService:\tSyncing to upstream...")
 			s.Sync()
 		}
 	}()
 }
 
 func (s *SyncController) Sync() {
-	syncDatabase()
-	syncStaticFiles(s.MinioClient)
+	s.syncDatabase()
+	s.syncStaticFiles()
 }
 
-func syncDatabase() {
+func (s *SyncController) syncDatabase() {
 	endpoint, exists := os.LookupEnv("MANAGE_ENDPOINT")
 	if !exists {
-		log.Fatalln("manage endpoint not specified")
+		log.Fatalln("SyncService:\tfis-manage endpoint not specified")
 	}
 
-	fmt.Println("Downloading database.sqlite")
-	fmt.Printf("%s\n", endpoint+"/api/sequences")
-	err := DownloadFile("database.sqlite", endpoint+"/api/sequences")
+	log.Println("SyncService:\tDownloading database.sqlite")
+
+	err := DownloadFile("database.sqlite", endpoint)
 	if err != nil {
-		log.Panic("Failed to download database")
-		log.Panic(err)
+		log.Panicln("SyncService:\tFailed to download database")
+		log.Panicln(err)
 	}
 }
 
-func syncStaticFiles(client *minio.Client) {
+func (s *SyncController) syncStaticFiles() {
 	// Sync the static files from the bucket
 	// "fis" to the local filesystem
 	// Define the bucket and local directory
 	bucketName := "fis"
-	localDir := "./static-test"
+	localDir := "./static"
 
 	// List objects in the bucket
 	ctx := context.Background()
-	objectCh := client.ListObjects(ctx, bucketName, minio.ListObjectsOptions{Recursive: true})
+	objectCh := s.MinioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{Recursive: true})
 
 	// Track the objects in the bucket
 	bucketObjects := make(map[string]struct{})
@@ -102,14 +102,14 @@ func syncStaticFiles(client *minio.Client) {
 			}
 
 			// Download the object
-			err = client.FGetObject(ctx, bucketName, object.Key, localFilePath, minio.GetObjectOptions{})
+			err = s.MinioClient.FGetObject(ctx, bucketName, object.Key, localFilePath, minio.GetObjectOptions{})
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			fmt.Printf("Successfully synced %s\n", object.Key)
+			log.Printf("SyncService:\tResource:\tSuccessfully synced %s\n", object.Key)
 		} else {
-			fmt.Printf("Already up-to-date: %s\n", object.Key)
+			log.Printf("SyncService:\tResource:\tAlready up-to-date: %s\n", object.Key)
 		}
 
 		// Add the object to the map
@@ -127,7 +127,8 @@ func syncStaticFiles(client *minio.Client) {
 				if err != nil {
 					log.Fatalln(err)
 				}
-				fmt.Printf("Removed local file: %s\n", path)
+				// todo: only remove if sqlite sync was successful
+				log.Printf("SyncService:\tResource:\tRemoved local file: %s\n", path)
 			}
 		}
 		return nil

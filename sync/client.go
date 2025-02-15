@@ -11,25 +11,25 @@ import (
 func CreateMinioClient() (*minio.Client, bool) {
 	endpoint, exists := os.LookupEnv("MINIO_ENDPOINT")
 	if !exists {
-		log.Fatalln("minio endpoint not specified")
+		log.Fatalln("SyncService:\tSetup:\tminio endpoint not specified")
 		return nil, false
 	}
 
 	accessKeyID, exists := os.LookupEnv("MINIO_ACCESS_KEY")
 	if !exists {
-		log.Fatalln("minio access key not specified")
+		log.Fatalln("SyncService:\tSetup:\tminio access key not specified")
 		return nil, false
 	}
 
 	secretAccessKey, exists := os.LookupEnv("MINIO_SECRET_KEY")
 	if !exists {
-		log.Fatalln("minio secret key not specified")
+		log.Fatalln("SyncService:\tSetup:\tminio secret key not specified")
 		return nil, false
 	}
 
 	useSSLString, exists := os.LookupEnv("MINIO_SSL")
 	if !exists {
-		log.Fatalln("minio secret key not specified")
+		log.Fatalln("SyncService:\tSetup:\tminio secret key not specified")
 		return nil, false
 	}
 	useSSL := useSSLString == "true"
@@ -43,6 +43,6 @@ func CreateMinioClient() (*minio.Client, bool) {
 		log.Fatalln(err)
 	}
 
-	log.Println("minioClient initialized successfully")
+	log.Println("SyncService:\tSetup:\tminioClient initialized successfully")
 	return minioClient, true
 }

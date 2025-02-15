@@ -4,6 +4,7 @@ import (
 	"fis/socket/ibis"
 	"fis/socket/sequences"
 	"fis/socket/socket"
+	fissync "fis/socket/sync"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,10 +20,10 @@ func init() {
 }
 
 func main() {
-	fmt.Println("socket process started")
+	log.Println("General:\tsocket process started")
 
 	go func() {
-		fmt.Println("Starting file server")
+		fmt.Println("FileServer:\tStarting file server")
 		// http.ListenAndServe(":8080", http.FileServer(http.Dir("static")))
 		http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -30,21 +31,23 @@ func main() {
 		}))
 	}()
 
-	// start sync service
-	// sync := fissync.CreateSynchronizer()
-	// sync.StartIntervalBackgroundSync()
-
 	// start socket server
 	server := socket.StartSocket()
 
+	// start sync service
+	go func() {
+		sync := fissync.CreateSynchronizer()
+		sync.StartIntervalBackgroundSync()
+	}()
+
 	// create ibis controller
 	go func() {
-		fmt.Println("creating ibis controller")
+		fmt.Println("IbisService:\tcreating ibis controller")
 		ibis.CreateController(server)
 	}()
 
 	// create media controller
-	fmt.Println("creating media controller")
+	fmt.Println("SequenceController:\tcreating media controller")
 	sequences.CreateController(server)
 
 	fmt.Println("socket process ended")

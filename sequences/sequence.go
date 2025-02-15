@@ -1,8 +1,10 @@
 package sequences
 
 import (
-	"encoding/json"
+	"log"
 	"time"
+
+	"github.com/goccy/go-json"
 )
 
 type RemoteSequence struct {
@@ -17,30 +19,33 @@ func (c *Controller) Sequence(s *SequenceService) *RemoteSequence {
 	}
 }
 
-// {"aspects":["aspect-16-9"],"slides":[{"background":"cm72mbowb0000cg0m0jjf1p5z","bottom":{}}]}
-type sequenceData struct {
-	Slides []sequenceSlide `json:"slides"`
-}
-
-type sequenceSlide struct {
+type slide struct {
 	Background string                 `json:"background"`
 	Bottom     map[string]interface{} `json:"bottom"`
+	Duration   int                    `json:"duration"`
 }
 
 func (rs *RemoteSequence) Display() {
-	var displayData sequenceData
-	err := json.Unmarshal([]byte(rs.service.current.displayJSON), &displayData)
+	log.Println("Sequence:\tDisplaying a remote sequence")
+	var slides []slide
+	err := json.Unmarshal([]byte(rs.service.current.Slides), &slides)
 	if err != nil {
-		panic(err)
+		log.Panicln("Sequence: Error unmarshalling slides")
 	}
-	for index := range displayData.Slides {
-		slide := displayData.Slides[index]
-		rs.controller.send("image", "http://localhost:8080/"+slide.Background)
-		time.Sleep(5 * time.Second)
+	for index := range slides {
+		slide := slides[index]
+		log.Printf("Sequence:\tSending slide %d of %d\n", index+1, len(slides))
+		backgroundFile := rs.service.getLocalFileReferenceFromId(slide.Background)
+		rs.controller.send("image", "http://localhost:8080/"+backgroundFile)
+
+		if slide.Duration == 0 {
+			time.Sleep(5 * time.Second)
+		} else {
+			time.Sleep(time.Duration(time.Duration(slide.Duration).Seconds()))
+		}
 	}
 
-	// wait 5 seconds
-	time.Sleep(5 * time.Second)
-
+	log.Println("Sequence:\tProgressing to next sequence")
+	rs.service.Step()
 	rs.controller.next()
 }

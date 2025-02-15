@@ -34,19 +34,27 @@ func connectToSQLite() *gorm.DB {
 }
 
 type Sequences struct {
-	Id          string `gorm:"primaryKey"`
-	Active      bool
-	Category    string
-	Locations   []string `gorm:"type:text[]; serializer:json"`
-	displayJSON string   `gorm:"column:displayJSON"`
+	Id        string `gorm:"primaryKey"`
+	Active    bool
+	Category  string
+	Locations []string `gorm:"type:text[]; serializer:json"`
+	Slides    string   `gorm:"serializer:json"`
 	// lastUpdated time.Time `gorm:"column:lastUpdated"`
+}
+
+type Files struct {
+	Id           string `gorm:"primaryKey"`
+	Bucket       string
+	FileName     string `gorm:"column:fileName"`
+	FileType     string `gorm:"column:fileType"`
+	OriginalName string `gorm:"column:originalName"`
 }
 
 func getFallbackSequence() *Sequences {
 	return &Sequences{
-		Id:          "fallback",
-		Locations:   []string{},
-		displayJSON: "{}",
+		Id:        "fallback",
+		Locations: []string{},
+		Slides:    "[]",
 	}
 }
 
@@ -60,6 +68,16 @@ func (c *SequenceService) getNextSequence() *Sequences {
 		return c.current
 	}
 	return &sequence
+}
+
+// please rework the project to either download to the correct id, or save the remote id in the display json
+func (c *SequenceService) getLocalFileReferenceFromId(id string) string {
+	var file Files
+	result := c.db.Where("id = ?", id).Take(&file)
+	if result.Error != nil || result.RowsAffected == 0 || file.Id == "" {
+		return "fallback"
+	}
+	return file.FileName
 }
 
 func (c *SequenceService) Step() {
