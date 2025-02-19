@@ -26,6 +26,12 @@ type slide struct {
 	Duration   StringInt              `json:"duration"`
 }
 
+type mediaData struct {
+	Type       string                 `json:"type"`
+	Background string                 `json:"background"`
+	Bottom     map[string]interface{} `json:"bottom"`
+}
+
 func (rs *RemoteSequence) Display() {
 	log.Println("Sequence:\tDisplaying a remote sequence")
 	var slides []slide
@@ -37,7 +43,11 @@ func (rs *RemoteSequence) Display() {
 		slide := slides[index]
 		log.Printf("Sequence:\tSending slide %d of %d\n", index+1, len(slides))
 		fileCategory, backgroundFile := rs.service.getLocalFileReferenceFromId(slide.Background)
-		rs.controller.send(fileCategory, "http://localhost:8080/"+backgroundFile)
+		rs.controller.send("media", &mediaData{
+			Type:       fileCategory,
+			Background: "http://localhost:8080/" + backgroundFile,
+			Bottom:     slide.Bottom,
+		})
 
 		if slide.Duration > 0 {
 			time.Sleep(time.Duration(slide.Duration) * time.Millisecond)
