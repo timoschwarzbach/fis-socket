@@ -2,6 +2,7 @@ package sequences
 
 import (
 	"log"
+	"path/filepath"
 	"time"
 
 	"github.com/goccy/go-json"
@@ -35,11 +36,14 @@ func (rs *RemoteSequence) Display() {
 	for index := range slides {
 		slide := slides[index]
 		log.Printf("Sequence:\tSending slide %d of %d\n", index+1, len(slides))
-		backgroundFile := rs.service.getLocalFileReferenceFromId(slide.Background)
-		rs.controller.send("image", "http://localhost:8080/"+backgroundFile)
+		fileCategory, backgroundFile := rs.service.getLocalFileReferenceFromId(slide.Background)
+		rs.controller.send(fileCategory, "http://localhost:8080/"+backgroundFile)
 
 		if slide.Duration > 0 {
 			time.Sleep(time.Duration(slide.Duration) * time.Millisecond)
+		} else if fileCategory == "video" {
+			absPath, _ := filepath.Abs("./static/" + backgroundFile)
+			time.Sleep(getVideoDuration(absPath))
 		} else {
 			time.Sleep(5 * time.Second)
 		}

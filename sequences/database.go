@@ -2,6 +2,7 @@ package sequences
 
 import (
 	"log"
+	"strings"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -85,13 +86,16 @@ func (c *SequenceService) getNextSequence() *Sequences {
 }
 
 // please rework the project to either download to the correct id, or save the remote id in the display json
-func (c *SequenceService) getLocalFileReferenceFromId(id string) string {
+func (c *SequenceService) getLocalFileReferenceFromId(id string) (string, string) {
 	var file Files
 	result := c.db.Where("id = ?", id).Take(&file)
 	if result.Error != nil || result.RowsAffected == 0 || file.Id == "" {
-		return "fallback"
+		return "image", "fallback"
 	}
-	return file.FileName
+	if strings.HasPrefix(file.FileType, "video/") {
+		return "video", file.FileName
+	}
+	return "image", file.FileName
 }
 
 func (c *SequenceService) Step() {
