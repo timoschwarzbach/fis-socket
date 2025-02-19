@@ -22,7 +22,7 @@ func (c *Controller) Sequence(s *SequenceService) *RemoteSequence {
 type slide struct {
 	Background string                 `json:"background"`
 	Bottom     map[string]interface{} `json:"bottom"`
-	Duration   int                    `json:"duration"`
+	Duration   StringInt              `json:"duration"`
 }
 
 func (rs *RemoteSequence) Display() {
@@ -38,10 +38,10 @@ func (rs *RemoteSequence) Display() {
 		backgroundFile := rs.service.getLocalFileReferenceFromId(slide.Background)
 		rs.controller.send("image", "http://localhost:8080/"+backgroundFile)
 
-		if slide.Duration == 0 {
-			time.Sleep(5 * time.Second)
+		if slide.Duration > 0 {
+			time.Sleep(time.Duration(slide.Duration) * time.Millisecond)
 		} else {
-			time.Sleep(time.Duration(time.Duration(slide.Duration).Seconds()))
+			time.Sleep(5 * time.Second)
 		}
 	}
 
