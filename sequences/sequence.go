@@ -2,6 +2,7 @@ package sequences
 
 import (
 	"log"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -62,4 +63,34 @@ func (rs *RemoteSequence) Display() {
 	log.Println("Sequence:\tProgressing to next sequence")
 	rs.service.Step()
 	rs.controller.next()
+}
+
+/* Video duration */
+
+type fFProbeOutput struct {
+	Format struct {
+		Duration string `json:"duration"`
+	} `json:"format"`
+}
+
+func getVideoDuration(filename string) time.Duration {
+	cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "json", filename)
+	output, err := cmd.Output()
+	if err != nil {
+		log.Println("Error getting video duration:", err)
+		return 0
+	}
+
+	var ffprobeOutput fFProbeOutput
+	if err := json.Unmarshal(output, &ffprobeOutput); err != nil {
+		log.Println("Error getting video duration:", err)
+		return 0
+	}
+
+	duration, err := time.ParseDuration(ffprobeOutput.Format.Duration + "s")
+	if err != nil {
+		log.Println("Error parsing video duration:", err)
+		return 0
+	}
+	return duration
 }
