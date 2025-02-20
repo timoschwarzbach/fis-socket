@@ -45,7 +45,8 @@ func (s *SyncController) StartIntervalBackgroundSync() {
 
 func (s *SyncController) Sync() {
 	s.syncDatabase()
-	s.syncStaticFiles()
+	s.syncStaticFiles("fis", "./static")
+	s.syncStaticFiles("tagesschau", "./static/tagesschau")
 }
 
 func (s *SyncController) syncDatabase() bool {
@@ -71,12 +72,10 @@ func (s *SyncController) syncDatabase() bool {
 	return true
 }
 
-func (s *SyncController) syncStaticFiles() {
+func (s *SyncController) syncStaticFiles(bucketName string, localDir string) {
 	// Sync the static files from the bucket
 	// "fis" to the local filesystem
 	// Define the bucket and local directory
-	bucketName := "fis"
-	localDir := "./static"
 
 	// List objects in the bucket
 	ctx := context.Background()
@@ -130,6 +129,9 @@ func (s *SyncController) syncStaticFiles() {
 	err := filepath.Walk(localDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+		if info.IsDir() {
+			return filepath.SkipDir
 		}
 		if !info.IsDir() {
 			if _, exists := bucketObjects[path]; !exists {

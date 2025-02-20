@@ -34,19 +34,33 @@ type mediaData struct {
 }
 
 func (rs *RemoteSequence) Display() {
-	log.Println("Sequence:\tDisplaying a remote sequence")
+	sequence := rs.service.current
+	log.Println("Sequence:\tDisplaying a remote sequence", sequence.Category)
+
+	// get slides
 	var slides []slide
-	err := json.Unmarshal([]byte(rs.service.current.Slides), &slides)
+	err := json.Unmarshal([]byte(sequence.Slides), &slides)
 	if err != nil {
 		log.Panicln("Sequence: Error unmarshalling slides")
 	}
+
+	// display slides
 	for index := range slides {
 		slide := slides[index]
 		log.Printf("Sequence:\tSending slide %d of %d\n", index+1, len(slides))
-		fileCategory, backgroundFile := rs.service.getLocalFileReferenceFromId(slide.Background)
+		fileCategory, backgroundFile := rs.service.fileFromId(slide.Background)
+
+		// override tagesschau because files are not in database
+		// todo: when there are more services, find a b proper solutions
+		if sequence.Category == "tagesschau" {
+			fileCategory = "image"
+			backgroundFile = slide.Background
+		}
+
+		// send item
 		rs.controller.send("media", &mediaData{
 			Type:       fileCategory,
-			Background: "http://localhost:8080/" + backgroundFile,
+			Background: backgroundUrl(rs.service.current.Category, backgroundFile),
 			Bottom:     slide.Bottom,
 		})
 
@@ -93,4 +107,12 @@ func getVideoDuration(filename string) time.Duration {
 		return 0
 	}
 	return duration
+}
+
+/* Background url from sequence category + media id */
+func backgroundUrl(category string, mediaId string) string {
+	if category == "tagesschau" {
+		return "http://localhost:8080/tagesschau/" + mediaId
+	}
+	return "http://localhost:8080/" + mediaId
 }

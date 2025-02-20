@@ -86,7 +86,7 @@ func (c *SequenceService) getNextSequence() *Sequences {
 }
 
 // please rework the project to either download to the correct id, or save the remote id in the display json
-func (c *SequenceService) getLocalFileReferenceFromId(id string) (string, string) {
+func (c *SequenceService) fileFromId(id string) (string, string) {
 	var file Files
 	result := c.db.Where("id = ?", id).Take(&file)
 	if result.Error != nil || result.RowsAffected == 0 || file.Id == "" {
