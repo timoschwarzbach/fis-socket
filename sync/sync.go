@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -21,12 +22,32 @@ func CreateSynchronizer(dbSync chan bool) *SyncController {
 	if !success {
 		log.Fatalln("SyncService:\tFailed to create Minio client")
 	}
+
 	log.Println("SyncService:\tCreating SyncService")
 	return &SyncController{
 		MinioClient: client,
-		interval:    6,
+		interval:    get_sync_interval(),
 		dbSync:      dbSync,
 	}
+}
+
+// retrieves the synchronization interval from the environment
+// if the environment variable is not set or cannot be parsed,
+// it returns a default interval of 60 seconds.
+func get_sync_interval() int {
+	env_interval, exists := os.LookupEnv("SYNC_INTERVAL_SECONDS")
+	if !exists {
+		log.Println("SyncService:\tSetup:\tenvironment variable SYNC_INTERVAL_SECONDS not specified. using default")
+		return 60
+	}
+
+	interval, err := strconv.Atoi(env_interval)
+	if err != nil {
+		log.Println("SyncService:\tSetup:\tFailed to parse SYNC_INTERVAL_SECONDS. using default")
+		return 60
+	}
+
+	return interval
 }
 
 func (s *SyncController) StartIntervalBackgroundSync() {
