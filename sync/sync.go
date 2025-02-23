@@ -50,7 +50,8 @@ func get_sync_interval() int {
 	return interval
 }
 
-func (s *SyncController) StartIntervalBackgroundSync() {
+// starts a ticker, that syncs remote resources in a fixed interval
+func (s *SyncController) StartBackgroundSync() {
 	log.Println("SyncService:\tStarting SyncService")
 	go func() {
 		ticker := time.NewTicker(time.Duration(s.interval) * time.Second)
@@ -64,12 +65,14 @@ func (s *SyncController) StartIntervalBackgroundSync() {
 	}()
 }
 
+// starts a synchronization process
 func (s *SyncController) Sync() {
 	s.syncDatabase()
 	s.syncStaticFiles("fis", "./static")
 	s.syncStaticFiles("tagesschau", "./static/tagesschau")
 }
 
+// downloads the latest database from the manage service
 func (s *SyncController) syncDatabase() bool {
 	endpoint, exists := os.LookupEnv("MANAGE_ENDPOINT")
 	if !exists {
@@ -93,6 +96,7 @@ func (s *SyncController) syncDatabase() bool {
 	return true
 }
 
+// synchronises static files from a minio bucket to the local filesystem
 func (s *SyncController) syncStaticFiles(bucketName string, localDir string) {
 	// Sync the static files from the bucket
 	// "fis" to the local filesystem

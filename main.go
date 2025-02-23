@@ -39,7 +39,7 @@ func main() {
 
 	// start sync service
 	sync := fissync.CreateSynchronizer(dbSync)
-	sync.StartIntervalBackgroundSync()
+	sync.StartBackgroundSync()
 
 	// create ibis controller
 	go func() {
