@@ -40,13 +40,15 @@ func (rs *RemoteSequence) Display() {
 	for index := range sequence.Slides {
 		slide := sequence.Slides[index]
 		log.Printf("Sequence:\tSending slide %d of %d\n", index+1, len(sequence.Slides))
-		fileCategory, backgroundFile := rs.service.fileFromId(slide.Background)
 
-		// override tagesschau because files are not in database
-		// todo: when there are more services, find a b proper solutions
+		fileCategory, backgroundFile := "fallback", "fallback"
+
+		if sequence.Category == "default" {
+			fileCategory, backgroundFile = rs.service.fileFromId(slide.Background)
+		}
+
 		if sequence.Category == "tagesschau" {
-			fileCategory = "image"
-			backgroundFile = slide.Background
+			fileCategory, backgroundFile = "image", slide.Background
 		}
 
 		// send item
