@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// sequence service
+
 type SequenceService struct {
 	db      *gorm.DB
 	dbSync  chan bool
@@ -27,6 +29,19 @@ func CreateSequenceService(dbSync chan bool) *SequenceService {
 	c.Step()
 	return c
 }
+
+func (c *SequenceService) ListenToUpdates() {
+	log.Println("SequenceService:\tListening to SQLite update requests")
+	go func() {
+		for {
+			<-c.dbSync
+			log.Println("SequenceService:\tDatabase reconnect update request received")
+			c.forceReconnect()
+		}
+	}()
+}
+
+// database functions
 
 func connectToSQLite() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("database.sqlite"), &gorm.Config{})
@@ -53,7 +68,7 @@ type Sequences struct {
 	Active    bool
 	Category  string
 	Locations []string `gorm:"type:text[]; serializer:json"`
-	Slides    string   `gorm:"serializer:json"`
+	Slides    []Slide  `gorm:"type:text[]; serializer:json"`
 	// lastUpdated time.Time `gorm:"column:lastUpdated"`
 }
 
@@ -65,11 +80,13 @@ type Files struct {
 	OriginalName string `gorm:"column:originalName"`
 }
 
+// sequence functions
+
 func getFallbackSequence() *Sequences {
 	return &Sequences{
 		Id:        "fallback",
 		Locations: []string{},
-		Slides:    "[]",
+		Slides:    []Slide{},
 	}
 }
 
@@ -101,15 +118,4 @@ func (c *SequenceService) fileFromId(id string) (string, string) {
 func (c *SequenceService) Step() {
 	c.current = c.next
 	c.next = c.getNextSequence()
-}
-
-func (c *SequenceService) ListenToUpdates() {
-	log.Println("SequenceService:\tListening to SQLite update requests")
-	go func() {
-		for {
-			<-c.dbSync
-			log.Println("SequenceService:\tDatabase reconnect update request received")
-			c.forceReconnect()
-		}
-	}()
 }

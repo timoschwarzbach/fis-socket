@@ -54,6 +54,11 @@ func (c *Controller) send(screen string, data any) {
 	c.socketServer.Emit("screen", screen, data)
 }
 
+// allows a sequence to tell the client to load a resource into cache for display in the future
+func (c *Controller) prefetch(resource string) {
+	c.socketServer.Emit("prefetch", resource)
+}
+
 // continue the sequence
 func (c *Controller) next() {
 	c.index = (c.index + 1) % len(c.sequence)

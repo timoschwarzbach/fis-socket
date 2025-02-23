@@ -21,12 +21,6 @@ func (c *Controller) Sequence(s *SequenceService) *RemoteSequence {
 	}
 }
 
-type slide struct {
-	Background string                 `json:"background"`
-	Bottom     map[string]interface{} `json:"bottom"`
-	Duration   StringInt              `json:"duration"`
-}
-
 type mediaData struct {
 	Type       string                 `json:"type"`
 	Background string                 `json:"background"`
@@ -37,17 +31,15 @@ func (rs *RemoteSequence) Display() {
 	sequence := rs.service.current
 	log.Println("Sequence:\tDisplaying a remote sequence", sequence.Category)
 
-	// get slides
-	var slides []slide
-	err := json.Unmarshal([]byte(sequence.Slides), &slides)
-	if err != nil {
-		log.Panicln("Sequence: Error unmarshalling slides")
-	}
+	// tell client to load all images
+	// in the best case: this has already been done trough the previous sequence
+	sendFetchInstruction(rs.service.current, rs.controller)
+	sendFetchInstruction(rs.service.next, rs.controller)
 
 	// display slides
-	for index := range slides {
-		slide := slides[index]
-		log.Printf("Sequence:\tSending slide %d of %d\n", index+1, len(slides))
+	for index := range sequence.Slides {
+		slide := sequence.Slides[index]
+		log.Printf("Sequence:\tSending slide %d of %d\n", index+1, len(sequence.Slides))
 		fileCategory, backgroundFile := rs.service.fileFromId(slide.Background)
 
 		// override tagesschau because files are not in database
@@ -77,6 +69,13 @@ func (rs *RemoteSequence) Display() {
 	log.Println("Sequence:\tProgressing to next sequence")
 	rs.service.Step()
 	rs.controller.next()
+}
+
+func sendFetchInstruction(s *Sequences, c *Controller) {
+	for index := range s.Slides {
+		slide := s.Slides[index]
+		c.prefetch(slide.Background)
+	}
 }
 
 /* Video duration */
