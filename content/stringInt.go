@@ -1,5 +1,5 @@
 // https://github.com/yurisasuke/golang-decode-string-json-to-int/blob/main/main.go
-package sequences
+package content
 
 import (
 	"encoding/json"

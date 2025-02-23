@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fis/socket/content"
 	"fis/socket/ibis"
-	"fis/socket/sequences"
 	"fis/socket/socket"
 	fissync "fis/socket/sync"
 	"fmt"
@@ -49,7 +49,7 @@ func main() {
 
 	// create media controller
 	fmt.Println("SequenceController:\tcreating media controller")
-	sequences.CreateController(server, dbSync)
+	content.CreateController(server, dbSync)
 
 	fmt.Println("socket process ended")
 }

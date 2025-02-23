@@ -1,4 +1,4 @@
-package sequences
+package content
 
 import (
 	"log"
