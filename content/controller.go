@@ -30,15 +30,16 @@ func CreateController(server *socket.Server, dbSync chan bool) *Controller {
 }
 
 func (c *Controller) demoSequence() []Sequence {
-	item := c.Sequence(c.sequenceService)
+	// item := c.Sequence(c.sequenceService)
 	return []Sequence{
-		c.Generic("stations"),
-		// c.Generic("map", 2),
+		// c.Generic("stations"),
+		c.Generic("map", 2),
+		// c.Generic("map-fullRoute", 5),
 		// c.MapView("test1"),
 		// c.MapView("testbustreff"),
 		// c.MapView("testbahnhof"),
-		item,
-		item,
+		// item,
+		// item,
 	}
 
 }
